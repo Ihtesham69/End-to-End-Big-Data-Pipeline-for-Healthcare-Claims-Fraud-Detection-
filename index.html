@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Fraud Detection Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --accent-color: #3b82f6;
+            --text-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 20px;
+        }
+
+        .title-section h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+        }
+
+        .title-section p {
+            margin: 5px 0 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--success-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            border: 1px solid var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto;
+            gap: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #334155;
+        }
+
+        .kpi-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 120px;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .kpi-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Live Feed Section */
+        .live-feed-container {
+            grid-column: span 3;
+            height: 400px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            padding: 10px;
+            background-color: #334155;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .transaction-list {
+            flex-grow: 1;
+            overflow-y: hidden; /* Hidden to force animation feel */
+            position: relative;
+        }
+
+        .transaction-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            padding: 12px 10px;
+            border-bottom: 1px solid #334155;
+            animation: slideDown 0.5s ease-out;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fraud-row {
+            background-color: rgba(239, 68, 68, 0.15);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .safe-row {
+            border-left: 4px solid var(--success-color);
+        }
+
+        /* Chart Section */
+        .chart-container {
+            grid-column: span 1;
+            height: 400px;
+        }
+
+        /* Architecture Diagram */
+        .arch-container {
+            grid-column: span 4;
+            margin-top: 20px;
+        }
+
+        .pipeline-viz {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .pipe-stage {
+            text-align: center;
+            position: relative;
+            width: 18%;
+        }
+
+        .pipe-stage i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .pipe-arrow {
+            color: #64748b;
+            font-size: 1.5rem;
+        }
+
+        .badge-danger { color: var(--danger-color); font-weight: bold; }
+        .badge-success { color: var(--success-color); font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title-section">
+            <h1><i class="fas fa-shield-alt"></i> Pipeline Overview: Healthcare Claims Fraud</h1>
+            <p>Based on Project: End-to-End Big Data Pipeline (Hussain & Mustafa)</p>
+        </div>
+        <div class="status-badge">
+            <i class="fas fa-circle"></i> SYSTEM ACTIVE (Lambda Architecture)
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="card kpi-card">
+            <span class="kpi-label">Claims Processed (Session)</span>
+            <span class="kpi-value" id="total-claims">0</span>
+            <span style="color: var(--accent-color); font-size: 0.8rem;">
+                <i class="fas fa-server"></i> Kafka Ingestion
+            </span>
+        </div>
+
+        <div class="card kpi-card">
+            <span class="kpi-label">Fraud Detected</span>
+            <span class="kpi-value" id="fraud-count" style="color: var(--danger-color)">0</span>
+            <span style="color: #94a3b8; font-size: 0.8rem;">Target: High Priority</span>
+        </div>
+
+        <div class="card kpi-card">
+            <span class="kpi-label">Model Recall</span>
+            <span class="kpi-value">94.2%</span>
+            <span style="color: var(--success-color); font-size: 0.8rem;">
+                <i class="fas fa-check-circle"></i> Primary Metric
+            </span>
+        </div>
+
+        <div class="card kpi-card">
+            <span class="kpi-label">Est. Loss Prevented</span>
+            <span class="kpi-value" id="money-saved">$0</span>
+            <span style="color: var(--warning-color); font-size: 0.8rem;">
+                <i class="fas fa-dollar-sign"></i> Based on Avg Claim
+            </span>
+        </div>
+
+        <div class="card live-feed-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <h3 style="margin:0;">SPEED LAYER: Live Transaction Scoring</h3>
+                <small>Source: Kafka Streams -> XGBoost API</small>
+            </div>
+            
+            <div class="table-header">
+                <span>Timestamp</span>
+                <span>Provider ID</span>
+                <span>Claim Type</span>
+                <span>Amount ($)</span>
+                <span>Risk Score</span>
+            </div>
+            <div class="transaction-list" id="transaction-feed">
+                </div>
+        </div>
+
+        <div class="card chart-container">
+            <h3>Dataset Distribution</h3>
+            <canvas id="imbalanceChart"></canvas>
+            <div style="margin-top: 15px; font-size: 0.8rem; color: #94a3b8;">
+                <p><strong>Note:</strong> As noted in Phase 4.4, the dataset is highly imbalanced (<2% fraud). XGBoost scale_pos_weight is active.</p>
+            </div>
+        </div>
+
+        <div class="card arch-container">
+            <h3 style="margin:0 0 10px 0;">System Architecture (Lambda)</h3>
+            <div class="pipeline-viz">
+                <div class="pipe-stage">
+                    <i class="fas fa-file-csv"></i>
+                    <div>Data Sources</div>
+                    <small>Provider/Inpatient CSVs</small>
+                </div>
+                <div class="pipe-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+                
+                <div class="pipe-stage">
+                    <i class="fas fa-project-diagram"></i>
+                    <div>Ingestion</div>
+                    <small>Apache NiFi & Kafka</small>
+                </div>
+                <div class="pipe-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+
+                <div class="pipe-stage">
+                    <i class="fas fa-layer-group"></i>
+                    <div>Processing</div>
+                    <small>Spark (Batch) / Streaming</small>
+                </div>
+                <div class="pipe-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+
+                <div class="pipe-stage">
+                    <i class="fas fa-brain"></i>
+                    <div>Analysis</div>
+                    <small>XGBoost & Neo4j (Graph)</small>
+                </div>
+                <div class="pipe-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+
+                <div class="pipe-stage">
+                    <i class="fas fa-chart-line"></i>
+                    <div>Visualization</div>
+                    <small>Tableau / Bloom</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        let totalClaims = 0;
+        let fraudCount = 0;
+        let moneySaved = 0;
+        const tableBody = document.getElementById('transaction-feed');
+
+        // Helper to format currency
+        const fmtMoney = (num) => {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+        };
+
+        // --- 1. Initialize Chart (Dataset Imbalance) ---
+        const ctx = document.getElementById('imbalanceChart').getContext('2d');
+        const imbalanceChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Legitimate (Normal)', 'Fraudulent (Anomalous)'],
+                datasets: [{
+                    data: [98.5, 1.5], // Based on PDF "typically <1-2%"
+                    backgroundColor: ['#3b82f6', '#ef4444'],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#e2e8f0' } }
+                }
+            }
+        });
+
+        // --- 2. Simulation Logic (The Speed Layer) ---
+        function generateClaim() {
+            // Simulating Data Fields mentioned in the PDF (ProviderID, ClaimAmounts, etc.)
+            const providerId = "PRV-" + Math.floor(10000 + Math.random() * 90000);
+            const claimTypes = ["Inpatient", "Outpatient", "Inpatient", "Outpatient", "Beneficiary"];
+            const type = claimTypes[Math.floor(Math.random() * claimTypes.length)];
+            
+            // Determine if this is a "Fraud" simulation based on random chance (simulating XGBoost prediction)
+            // We make fraud appear slightly more often than reality for demo purposes (10% chance)
+            const isFraud = Math.random() < 0.10; 
+            
+            let amount;
+            let riskScore;
+
+            if (isFraud) {
+                // Fraud patterns: High amounts, unusual duration (simulated)
+                amount = Math.floor(15000 + Math.random() * 50000);
+                riskScore = (0.85 + Math.random() * 0.14).toFixed(2); // 0.85 - 0.99
+            } else {
+                // Normal patterns
+                amount = Math.floor(100 + Math.random() * 5000);
+                riskScore = (0.01 + Math.random() * 0.40).toFixed(2); // 0.01 - 0.40
+            }
+
+            return { providerId, type, amount, riskScore, isFraud };
+        }
+
+        function updateDashboard() {
+            const claim = generateClaim();
+            const now = new Date().toLocaleTimeString();
+
+            // Update State
+            totalClaims++;
+            document.getElementById('total-claims').innerText = totalClaims;
+
+            if (claim.isFraud) {
+                fraudCount++;
+                moneySaved += claim.amount;
+                document.getElementById('fraud-count').innerText = fraudCount;
+                document.getElementById('money-saved').innerText = fmtMoney(moneySaved);
+            }
+
+            // Create Table Row
+            const row = document.createElement('div');
+            row.className = `transaction-row ${claim.isFraud ? 'fraud-row' : 'safe-row'}`;
+            
+            const statusHtml = claim.isFraud 
+                ? `<span class="badge-danger"><i class="fas fa-exclamation-triangle"></i> HIGH (${claim.riskScore})</span>` 
+                : `<span class="badge-success">LOW (${claim.riskScore})</span>`;
+
+            row.innerHTML = `
+                <div>${now}</div>
+                <div>${claim.providerId}</div>
+                <div>${claim.type}</div>
+                <div>${fmtMoney(claim.amount)}</div>
+                <div>${statusHtml}</div>
+            `;
+
+            // Add to DOM
+            tableBody.insertBefore(row, tableBody.firstChild);
+
+            // Cleanup old rows to prevent memory issues
+            if (tableBody.children.length > 8) {
+                tableBody.removeChild(tableBody.lastChild);
+            }
+        }
+
+        // --- 3. Start Simulation Loop ---
+        // Simulates Apache Kafka ingestion speed (every 1.5 seconds)
+        setInterval(updateDashboard, 1500);
+
+    </script>
+</body>
+</html>
